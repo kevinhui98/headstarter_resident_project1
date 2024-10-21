@@ -5,7 +5,10 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-
+import sys
+sys.path.append("my_utils\utils.py")
+import utils
+from my_utils.utils import create_gauge_chart, create_model_probability_chart
 load_dotenv()
 
 client = OpenAI(
@@ -131,10 +134,19 @@ def make_predictions(input_df, input_dict):
         # "XGBoost feature Engineered": xgboost_featureEngineered_model.predict_proba(input_df)[0][1] ,
     }
     avg_prob = np.mean(list(probs.values()))
-    st.markdown("### Model Probabilities")
-    for model, prob in probs.items():
-        st.write(f"{model} {prob}")
-    st.write(f"Average Probability: {avg_prob}")
+    col1,col2 = st.columns(2)
+    with col1:
+        fig = create_gauge_chart(avg_prob)
+        st.plotly_chart(fig, use_container_width = True)
+        st.write(f"The customer has a {avg_prob: .2%} probabiliy of churning.")
+    with col2:
+        fig_probs = create_model_probability_chart(probs)
+        st.plotly_chart(fig_probs, use_container_width=True)
+    # st.markdown("### Model Probabilities")
+    # for model, prob in probs.items():
+    #     st.write(f"{model} {prob}")
+    # st.write(f"Average Probability: {avg_prob}")
+    
     return avg_prob
 
 st.title("Customer Churn Prediction")
