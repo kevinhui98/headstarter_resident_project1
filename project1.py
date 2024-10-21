@@ -2,6 +2,69 @@ import streamlit as st
 import pandas as pd
 import pickle
 import numpy as np
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
+
+client = OpenAI(
+    base_url="https://api.groq.com/openai/v1",
+    # api_key = os.getenv('GROQ_API_KEY')
+    api_key = os.getenv("GROQ_API_KEY")
+)
+
+def explain_prediction(probability, input_dict, surname):
+    prompt  = f""" You are an expert data scientist at a bank, where you specialize in interpreting 
+    and explaining predictions of machine learning models.
+    
+    You machine learning model has predicted that a customer name {surname} has a {round(probability * 100,1)}% probability of churning, based on the information provided below.
+    
+    Here is the customer's information:
+    {input_dict}
+    
+    Here are the machine learning models's top 10 most important features for predicting churn:
+    
+              Feature | Importance
+    -------------------------------------
+        NumOfProducts | 0.323888
+       IsActiveMember | 0.164146
+                  Age | 0.109550
+    Geography_Germany | 0.0913373
+              Balance | 0.052786
+     Geography_France | 0.046463
+        Gender_Female | 0.045283
+      Geography_Spain | 0.036855
+          CreditScore | 0.035005
+      EstimatedSalary | 0.032655
+            HasCrCard | 0.031940
+               Tenure | 0.030054
+          Gender_Male | 0.000000
+    
+    {pd.set_option('display.max_columns',None)}
+    
+    Here are summary statistics for churned customers:
+    {df[df["Exited"] ==1].describe()}
+    
+    Here are summary statistics for non-churned customers:
+    {df[df["Exited"] ==0].describe()}
+    
+    - If the customer has over a 40% risk of churning, generate a 3 sentence explanation of why they are at risk of churning.
+    - If the customer has less than a 40% risk of churning, generate a 3 sentence explanation of why they might not be at risk of churning.
+    - Your explanation should be based on the customer's information, the summary statistics of churning and non-churned customers, and the feature importance provided.
+    
+    Don't mention the probability of churning, or the machine learning model, "Based on the customer's information, we can generate the following explanation" or say anything like "Based on the machine learning model's prediction and top 10 most important features", just explain the prediction.
+    """
+    print("EXPLANATION PROMPT", prompt)
+    raw_response = client.chat.completions.create(
+        model = "llama-3.2-3b-preview",
+        messages=[{
+            "role": "user",
+            "content": prompt
+        }],
+    )
+    return raw_response.choices[0].message.content
+        
 def load_model(filename):
     with open(filename,"rb") as file:
         return pickle.load(file)
@@ -51,6 +114,7 @@ def make_predictions(input_df, input_dict):
     for model, prob in probs.items():
         st.write(f"{model} {prob}")
     st.write(f"Average Probability: {avg_prob}")
+    return avg_prob
 
 st.title("Customer Churn Prediction")
 df = pd.read_csv("churn.csv")
@@ -119,5 +183,10 @@ if selected_customer_option:
             value = float(selected_customer['EstimatedSalary'])
         )
     input_df, input_dict = prepare_input(credit_score, location, gender,age, tenure,balance, num_products, has_credit_card, is_active_member,estimated_salary)
-    make_predictions(input_df, input_dict)
+    avg_prob = make_predictions(input_df, input_dict)
+    
+    explanation = explain_prediction(avg_prob, input_dict, selected_customer["Surname"])
+    st.markdown("---")
+    st.subheader("Explanation of Prediction")
+    st.markdown(explanation)
  
