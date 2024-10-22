@@ -4,7 +4,7 @@ def create_gauge_chart(prob):
     # Determine color based on churn probability
     if prob < 0.3:
         color = "green"
-    elif porb < 0.6:
+    elif prob < 0.6:
         color = "yellow"
     else:
         color = "red"
@@ -14,8 +14,8 @@ def create_gauge_chart(prob):
         go.Indicator(mode = "gauge+number",
                      value = prob * 100,
                      domain = {
-                         'x' = [0,1],
-                         'y' = [0,1]
+                         'x' : [0,1],
+                         'y' : [0,1]
                      },
                      title={
                          'text': "Churn Probability",
@@ -66,12 +66,12 @@ def create_gauge_chart(prob):
     # Update char layout
     fig.update_layout(paper_bgcolor = "rgba(0,0,0,0)",plot_bgcolor= "rgba(0,0,0,0)",font = {'color': "white"}, width = 400,height = 300, margin=dict(l=20,r=20,t=50,b=20))
     return fig
-def create_model_prob_chart(prob):
+def create_model_probability_chart(prob):
     models = list(prob.keys())
     probs = list(prob.values())
     
     fig = go.Figure(data =[
-        go.bar( y = models, x= probs, orientation = 'h',test = [f'{p:.2%}' for p in probs], textposition = 'auto')
+        go.Bar( y = models, x= probs, orientation = 'h',text = [f'{p:.2%}' for p in probs], textposition = 'auto')
     ])
     fig.update_layout(title='Churn Probability by Model', yaxis_title = 'Models',xaxis_title='Probability', xaxis=dict(tickformat='.0%', range=[0,1]), height =400, margin = dict(l=20,r=20,t=40,b=20))
     return fig
