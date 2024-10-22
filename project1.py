@@ -140,10 +140,12 @@ def make_predictions(input_df, input_dict):
     with col2:
         fig_probs = ut.create_model_probability_chart(probs)
         st.plotly_chart(fig_probs, use_container_width=True)
-    st.markdown("### Model Probabilities")
-    for model, prob in probs.items():
-        st.write(f"{model} {prob}")
-    st.write(f"Average Probability: {avg_prob}")
+    CLV = input_dict["Balance"] * input_dict["EstimateSalary"] /100000
+    st.write(f"Estimated Customer Lifetime Value ${round(CLV,2)}")
+    # st.markdown("### Model Probabilities")
+    # for model, prob in probs.items():
+    #     st.write(f"{model} {prob}")
+    # st.write(f"Average Probability: {avg_prob}")
     
     return avg_prob
 
