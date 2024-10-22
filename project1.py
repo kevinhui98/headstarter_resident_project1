@@ -6,11 +6,11 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
+import utils as ut
 load_dotenv()
 
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    # api_key = os.getenv('GROQ_API_KEY')
     api_key = os.getenv("GROQ_API_KEY")
 )
 
@@ -51,7 +51,8 @@ def explain_prediction(probability, input_dict, surname):
     - If the customer has over a 40% risk of churning, generate a 3 sentence explanation of why they are at risk of churning.
     - If the customer has less than a 40% risk of churning, generate a 3 sentence explanation of why they might not be at risk of churning.
     - Your explanation should be based on the customer's information, the summary statistics of churning and non-churned customers, and the feature importance provided.
-        Don't mention the probability of churning, or the machine learning model, "Based on the customer's information, we can generate the following explanation" or say anything like "Based on the machine learning model's prediction and top 10 most important features", just explain the prediction.
+    
+    Don't mention the probability of churning, or the machine learning model, "Based on the customer's information, we can generate the following explanation" or say anything like "Based on the machine learning model's prediction and top 10 most important features", just explain the prediction.
     """
     print("EXPLANATION PROMPT", prompt)
     raw_response = client.chat.completions.create(
@@ -125,16 +126,25 @@ def make_predictions(input_df, input_dict):
         "Random Forest": random_forest_model.predict_proba(input_df)[0][1],
         "Decision Tree": decision_tree_model.predict_proba(input_df)[0][1],
         # "SVM": svm_model.predict_proba(input_df)[0][1],
-        "KNN": knn_model.predict_proba(input_df)[0][1] ,
+        "K-Nearest Neighbors": knn_model.predict_proba(input_df)[0][1] ,
         # "Voting classifier": voting_classifier_model.predict_proba(input_df)[0][1] ,
         # "XGBoost SMOTE": xgboost_SMOTE_model.predict_proba(input_df)[0][1] ,
         # "XGBoost feature Engineered": xgboost_featureEngineered_model.predict_proba(input_df)[0][1] ,
     }
     avg_prob = np.mean(list(probs.values()))
+    col1,col2 = st.columns(2)
+    with col1:
+        fig = ut.create_gauge_chart(avg_prob)
+        st.plotly_chart(fig, use_container_width = True)
+        st.write(f"The customer has a {avg_prob: .2%} probability of churning.")
+    with col2:
+        fig_probs = ut.create_model_probability_chart(probs)
+        st.plotly_chart(fig_probs, use_container_width=True)
     st.markdown("### Model Probabilities")
     for model, prob in probs.items():
         st.write(f"{model} {prob}")
     st.write(f"Average Probability: {avg_prob}")
+    
     return avg_prob
 
 st.title("Customer Churn Prediction")
