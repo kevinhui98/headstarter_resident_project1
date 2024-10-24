@@ -3,15 +3,16 @@ import pandas as pd
 import pickle
 import numpy as np
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from openai import OpenAI
 
 import utils as ut
-load_dotenv()
+# load_dotenv()
 
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    api_key = os.getenv("GROQ_API_KEY")
+    # api_key = os.getenv("GROQ_API_KEY")
+    api_key = os.environ.get("GROQ_API_KEY")
 )
 
 def explain_prediction(probability, input_dict, surname):
