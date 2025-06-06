@@ -21,7 +21,6 @@ We will also use Llama 3.1 to generate a personalized email to send to them to i
 ## Customer Churn Prediction with Machine Learning
 
 ### User Stories
-`TODO://` In the **User Stories section below**, add an `x` in the `-[ ]` like this `- [x]` for any user story you complete. (🚫 Remove this paragraph after after checking off completed user stories)
 
 #### REQUIRED (10pts)
 - [X] Train ML models on the Kaggle dataset to predict customer churn
